@@ -1,0 +1,174 @@
+{
+    "scripts": [
+      {
+        "name": "Backup.ps1",
+        "description": "Effectue une sauvegarde des fichiers source vers une destination.",
+        "parameters": [
+          {"name": "source", "type": "string", "description": "Chemin du dossier source"},
+          {"name": "destination", "type": "string", "description": "Chemin du dossier de destination"}
+        ],
+        "code": "param($source, $destination)\n$date = Get-Date -Format \"yyyy-MM-dd\"\n\n$backupFolder = Join-Path -Path $destination -ChildPath \"Backup-$date\"\nNew-Item -ItemType Directory -Path $backupFolder -Force | Out-Null\nCopy-Item -Path $source -Destination $backupFolder -Recurse -Force\nWrite-Output \"Sauvegarde terminée : $backupFolder\""
+      },
+      {
+        "name": "DiskSpaceCheck.ps1",
+        "description": "Vérifie l'espace disque disponible sur un lecteur spécifié.",
+        "parameters": [
+          {"name": "drive", "type": "string", "description": "Lettre du lecteur à vérifier"},
+          {"name": "threshold", "type": "int", "description": "Seuil d'alerte en pourcentage"}
+        ],
+        "code": "param($drive, $threshold)\n\n$disk = Get-WmiObject -Class Win32_LogicalDisk -Filter \"DeviceID='$drive'\"\n$freeSpacePercent = ($disk.FreeSpace / $disk.Size) * 100\n\nif ($freeSpacePercent -lt $threshold) {\n    Write-Output \"Attention : L'espace libre sur $drive est inférieur à $threshold%.\"\n} else {\n    Write-Output \"L'espace disque sur $drive est suffisant.\"\n}"
+      },
+      {
+        "name": "RestartService.ps1",
+        "description": "Redémarre un service Windows spécifié.",
+        "parameters": [
+          {"name": "serviceName", "type": "string", "description": "Nom du service à redémarrer"}
+        ],
+        "code": "param($serviceName)\n$service = Get-Service -Name $serviceName\n\nif ($service.Status -eq 'Running') {\n    Stop-Service -Name $serviceName -Force\n    Start-Sleep -Seconds 5\n}\n\nStart-Service -Name $serviceName\nWrite-Output \"$serviceName redémarré avec succès.\""
+      },
+      {
+        "name": "PingList.ps1",
+        "description": "Effectue un ping sur une liste d'hôtes.",
+        "parameters": [
+          {"name": "hosts", "type": "array", "description": "Liste des hôtes à pinger"}
+        ],
+        "code": "param($hosts)\n\nforeach ($host in $hosts) {\n    $ping = Test-Connection -ComputerName $host -Count 1 -Quiet\n    if ($ping) {\n        Write-Output \"$host est accessible.\"\n    } else {\n        Write-Output \"$host n'est pas accessible.\"\n    }\n}"
+      },
+      {
+        "name": "UserManagement.ps1",
+        "description": "Gère les utilisateurs locaux (liste, ajout, suppression).",
+        "parameters": [
+          {"name": "Action", "type": "string", "description": "Action à effectuer (list, add, remove)"},
+          {"name": "Username", "type": "string", "description": "Nom d'utilisateur"},
+          {"name": "Password", "type": "string", "description": "Mot de passe pour l'ajout d'utilisateur"}
+        ],
+        "code": "param ($Action = \"list\", $Username, $Password)\n\nswitch ($Action) {\n    \"list\" {\n        Get-LocalUser\n    }\n    \"add\" {\n        if ($Username -and $Password) {\n            New-LocalUser -Name $Username -Password (ConvertTo-SecureString $Password -AsPlainText -Force)\n            Write-Output \"Utilisateur $Username ajouté.\"\n        } else {\n            Write-Output \"Veuillez spécifier un nom d'utilisateur et un mot de passe.\"\n        }\n    }\n    \"remove\" {\n        if ($Username) {\n            Remove-LocalUser -Name $Username\n            Write-Output \"Utilisateur $Username supprimé.\"\n        } else {\n            Write-Output \"Veuillez spécifier un nom d'utilisateur.\"\n        }\n    }\n    default {\n        Write-Output \"Action non reconnue. Utilisez 'list', 'add', ou 'remove'.\"\n    }\n}"
+      },
+      {
+        "name": "ReveilAutomatique.ps1",
+        "description": "Programme un réveil automatique après une mise en veille.",
+        "parameters": [
+          {"name": "duration", "type": "int", "description": "Durée en secondes avant le réveil"}
+        ],
+        "code": "param($duration)\nAdd-Type -TypeDefinition \"@\"\nusing System;\nusing System.Runtime.InteropServices;\npublic class SleepControl {\n    [DllImport(\"powrprof.dll\", SetLastError = true)]\n    public static extern bool SetSuspendState(bool hibernate, bool forceCritical, bool disableWakeEvent);\n}\n\"@\"\n[SleepControl]::SetSuspendState($false, $true, $true)\nStart-Sleep -Seconds $duration\nWrite-Output \"Réveil après $duration secondes\""
+      },
+      {
+        "name": "OuvrirExplorateurFichier.ps1",
+        "description": "Ouvre l'explorateur de fichiers à un emplacement spécifique.",
+        "parameters": [
+          {"name": "path", "type": "string", "description": "Chemin à ouvrir dans l'explorateur"}
+        ],
+        "code": "param($path)\nStart-Process explorer.exe $path"
+      },
+      {
+        "name": "RechercherFichiers.ps1",
+        "description": "Recherche les fichiers d'un type spécifique dans un dossier.",
+        "parameters": [
+          {"name": "path", "type": "string", "description": "Chemin où effectuer la recherche"},
+          {"name": "fileType", "type": "string", "description": "Type de fichier à rechercher (ex: *.txt)"}
+        ],
+        "code": "param($path, $fileType)\nGet-ChildItem -Path $path -Filter $fileType -Recurse"
+      },
+      {
+        "name": "ChangerAdresseIP.ps1",
+        "description": "Change l'adresse IP de l'adaptateur réseau spécifié.",
+        "parameters": [
+          {"name": "interfaceName", "type": "string", "description": "Nom de l'interface réseau"},
+          {"name": "newIP", "type": "string", "description": "Nouvelle adresse IP"},
+          {"name": "subnetMask", "type": "int", "description": "Masque de sous-réseau (en bits)"},
+          {"name": "gateway", "type": "string", "description": "Adresse de la passerelle"}
+        ],
+        "code": "param($interfaceName, $newIP, $subnetMask, $gateway)\nNew-NetIPAddress -InterfaceAlias $interfaceName -IPAddress $newIP -PrefixLength $subnetMask -DefaultGateway $gateway"
+      },
+      {
+        "name": "CleanupTemp.bat",
+        "description": "Nettoie les fichiers temporaires du système.",
+        "code": "@echo off\necho Nettoyage des fichiers temporaires...\ndel /s /q %temp%\\*\ndel /s /q C:\\Windows\\Temp\\*\necho Nettoyage terminé.\npause"
+      },
+      {
+        "name": "WindowsUpdate.ps1",
+        "description": "Recherche et installe les mises à jour Windows.",
+        "code": "Install-Module PSWindowsUpdate -Force -Scope CurrentUser \nImport-Module PSWindowsUpdate\n\nWrite-Output \"Recherche des mises à jour disponibles...\"\n$updates = Get-WindowsUpdate -AcceptAll\nif ($updates) {\n    Write-Output \"Installation des mises à jour...\"\n    Install-WindowsUpdate -AcceptAll -AutoReboot\n    Write-Output \"Mises à jour installées.\"\n} else {\n    Write-Output \"Aucune mise à jour trouvée.\"\n}"
+      },
+      {
+        "name": "MiseEnVeille.ps1",
+        "description": "Met l'ordinateur en veille immédiatement.",
+        "code": "Add-Type -TypeDefinition \"@\"\nusing System;\nusing System.Runtime.InteropServices;\npublic class SleepControl {\n    [DllImport(\"powrprof.dll\", SetLastError = true)]\n    public static extern bool SetSuspendState(bool hibernate, bool forceCritical, bool disableWakeEvent);\n}\n\"@\"\n[SleepControl]::SetSuspendState($false, $true, $true)"
+      },
+      {
+        "name": "MiseEnVeilleProlongee.ps1",
+        "description": "Place le système en veille prolongée (hibernation).",
+        "code": "powercfg -hibernate on\nAdd-Type -TypeDefinition \"@\"\nusing System;\nusing System.Runtime.InteropServices;\npublic class SleepControl {\n    [DllImport(\"powrprof.dll\", SetLastError = true)]\n    public static extern bool SetSuspendState(bool hibernate, bool forceCritical, bool disableWakeEvent);\n}\n\"@\"\n[SleepControl]::SetSuspendState($true, $true, $true)"
+      },
+      {
+        "name": "Redemarrage.ps1",
+        "description": "Redémarre l'ordinateur.",
+        "code": "Restart-Computer -Force"
+      },
+      {
+        "name": "Arret.ps1",
+        "description": "Éteint l'ordinateur.",
+        "code": "Stop-Computer -Force"
+      },
+      {
+        "name": "Deconnexion.ps1",
+        "description": "Déconnecte l'utilisateur actuel de la session.",
+        "code": "shutdown.exe /l"
+      },
+      {
+        "name": "Verrouillage.ps1",
+        "description": "Verrouille la session de l'utilisateur actuel.",
+        "code": "rundll32.exe user32.dll, LockWorkStation"
+      },
+      {
+        "name": "RedemarragePlanifie.ps1",
+        "description": "Redémarre l'ordinateur après un délai de 60 secondes.",
+        "code": "$delay = 60  # Délai en secondes\nshutdown.exe /r /t $delay"
+      },
+      {
+        "name": "ArretPlanifie.ps1",
+        "description": "Éteint l'ordinateur après un délai de 60 secondes.",
+        "code": "$delay = 60  # Délai en secondes\nshutdown.exe /s /t $delay"
+      },
+      {
+        "name": "AnnulerArret.ps1",
+        "description": "Annule toute commande d'arrêt ou de redémarrage planifiée en cours.",
+        "code": "shutdown.exe /a"
+      },
+      {
+        "name": "NettoyageDisque.ps1",
+        "description": "Exécute un nettoyage de disque.",
+        "code": "Start-Process cleanmgr.exe"
+      },
+      {
+        "name": "InformationSysteme.ps1",
+        "description": "Affiche les informations système générales.",
+        "code": "Get-ComputerInfo | Select-Object -Property CsName,WindowsVersion,WindowsBuildLabEx,OsArchitecture"
+      },
+      {
+        "name": "DesactiverMiseEnVeille.ps1",
+        "description": "Désactive la mise en veille de l'ordinateur.",
+        "code": "powercfg -change -standby-timeout-ac 0"
+      },
+      {
+        "name": "ActiverMiseEnVeille.ps1",
+        "description": "Active la mise en veille après 15 minutes d 'inactivité.",
+        "code": "powercfg -change -standby-timeout-ac 15"
+      },
+      {
+        "name": "VerifierEspaceDisque.ps1",
+        "description": "Affiche l'espace disque disponible.",
+        "code": "Get-PSDrive -PSProvider FileSystem | Select-Object -Property Name,Used,Free,UsedPct"
+      },
+      {
+        "name": "LancerApplication.ps1",
+        "description": "Lance une application spécifique (par exemple, Notepad).",
+        "code": "Start-Process notepad.exe"
+      },
+      {
+        "name": "VerifierAdresseIP.ps1",
+        "description": "Affiche l'adresse IP actuelle.",
+        "code": "Get-NetIPAddress | Where-Object { $_.AddressFamily -eq 'IPv4' -and $_.InterfaceAlias -notmatch 'Loopback' } | Select-Object -ExpandProperty IPAddress"
+      }
+    ]
+  }

@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../WinMobile"
+		},
+		{
+			"path": "../../pegasus"
+		},
+		{
+			"path": ".."
+		}
+	],
+	"settings": {}
+}
