@@ -19,24 +19,26 @@ const Sidebar = () => {
   const renderSection = (title, items, isOpen, toggleFn, icon) => (
     <div className="mb-4">
       <button
-        className="flex items-center w-full text-left cursor-pointer hover:text-blue-400"
+        className="flex items-center w-full text-left cursor-pointer hover:bg-gray-100 p-2 rounded-md transition-colors"
         onClick={toggleFn}
         aria-expanded={isOpen}
       >
-        {isOpen ? <FaChevronDown /> : <FaChevronRight />}
-        <span className="flex items-center p-1 gap-2 truncate">
-          <GetIcon item={{ type: icon }} size={iconSize -0.75} /> {title}
+        {isOpen ? <FaChevronDown className="text-gray-500" /> : <FaChevronRight className="text-gray-500" />}
+        <span className="flex items-center gap-2 truncate text-gray-700 font-medium">
+          <GetIcon item={{ type: icon }} size={iconSize - 0.75} /> 
+          {title}
         </span>
       </button>
       {isOpen && (
-        <ul className="ml-4">
+        <ul className="ml-4 mt-2 space-y-1">
           {items.map((item, index) => (
             <li
               key={index}
-              className="flex items-center p-1 gap-2 py-1.5 md:py-2.5 lg:py-3.5 cursor-pointer hover:bg-neutral-700 rounded truncate"
+              className="flex items-center gap-2 p-2 cursor-pointer hover:bg-blue-50 rounded-md transition-colors text-gray-600 hover:text-gray-800"
               onClick={() => handleDoubleClick(item)}
             >
-              <GetIcon item={item} size={iconSize - 1} /> {item.name}
+              <GetIcon item={item} size={iconSize - 1} /> 
+              <span className="truncate text-sm">{item.name}</span>
             </li>
           ))}
         </ul>
@@ -46,7 +48,7 @@ const Sidebar = () => {
   
 
   return (
-    <div className="sidebar bg-neutral-900 h-full w-full overflow-y-auto p-2 pt-1 gap-4 truncate">
+    <div className="sidebar bg-gray-50 h-full w-full overflow-y-auto p-4 border-r border-gray-200">
       {renderSection(
         'Accès rapide',
         defaultFolders,

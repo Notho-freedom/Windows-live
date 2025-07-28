@@ -1,184 +1,178 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
-import { FaWindowRestore, FaWindowMaximize, FaWindowMinimize, FaWindowClose } from 'react-icons/fa';
-import { AppContext } from '../AppProvider';
+import React, { useState, useRef, useEffect } from 'react';
+import { FaWindowMinimize, FaWindowMaximize, FaWindowRestore, FaTimes } from 'react-icons/fa';
 
 const Window = ({ children, title, onClose, item }) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [windowPosition, setWindowPosition] = useState({ x: 10, y: 10 });
+  const [windowPosition, setWindowPosition] = useState({ x: 50, y: 50 });
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isMaximized, setIsMaximized] = useState(false);
-  const [windowSize, setWindowSize] = useState({ width: 50, height: 50 });
+  const [windowSize, setWindowSize] = useState({ width: 800, height: 600 });
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeDirection, setResizeDirection] = useState(null);
 
   const windowRef = useRef(null);
   const contentRef = useRef(null);
 
-  const [isResizing, setIsResizing] = useState(false);
-  const [resizeDirection, setResizeDirection] = useState(null);
-  const {togglePinItem} = useContext(AppContext);
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isDragging) {
+        const deltaX = e.clientX - mousePosition.x;
+        const deltaY = e.clientY - mousePosition.y;
+
+        setWindowPosition((prevPosition) => ({
+          x: Math.max(0, Math.min(window.innerWidth - windowSize.width, prevPosition.x + deltaX)),
+          y: Math.max(0, Math.min(window.innerHeight - windowSize.height, prevPosition.y + deltaY)),
+        }));
+        setMousePosition({ x: e.clientX, y: e.clientY });
+      }
+
+      if (isResizing) {
+        const deltaX = e.clientX - mousePosition.x;
+        const deltaY = e.clientY - mousePosition.y;
+
+        if (resizeDirection === 'right') {
+          setWindowSize((prevSize) => ({
+            ...prevSize,
+            width: Math.max(400, Math.min(window.innerWidth - windowPosition.x, prevSize.width + deltaX)),
+          }));
+        } else if (resizeDirection === 'bottom') {
+          setWindowSize((prevSize) => ({
+            ...prevSize,
+            height: Math.max(300, Math.min(window.innerHeight - windowPosition.y, prevSize.height + deltaY)),
+          }));
+        } else if (resizeDirection === 'bottom-right') {
+          setWindowSize((prevSize) => ({
+            width: Math.max(400, Math.min(window.innerWidth - windowPosition.x, prevSize.width + deltaX)),
+            height: Math.max(300, Math.min(window.innerHeight - windowPosition.y, prevSize.height + deltaY)),
+          }));
+        }
+        setMousePosition({ x: e.clientX, y: e.clientY });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setIsResizing(false);
+      setResizeDirection(null);
+    };
+
+    if (isDragging || isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, isResizing, mousePosition, windowSize, windowPosition, resizeDirection]);
 
   const handleMouseDown = (e) => {
-    const clientX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
-    const clientY = e.type === 'mousedown' ? e.clientY : e.touches[0].clientY;
-    
+    if (e.target.closest('.window-controls')) return;
     setIsDragging(true);
-    setMousePosition({ x: clientX, y: clientY });
-  };
-
-  const handleMouseMove = (e) => {
-    const isTouchEvent = e.type.startsWith('touch');
-    const clientX = isTouchEvent ? e.touches[0].clientX : e.clientX;
-    const clientY = isTouchEvent ? e.touches[0].clientY : e.clientY;
-  
-    if (isDragging) {
-      const deltaX = clientX - mousePosition.x;
-      const deltaY = clientY - mousePosition.y;
-  
-      setWindowPosition((prevPosition) => ({
-        x: prevPosition.x + deltaX,
-        y: prevPosition.y + deltaY,
-      }));
-      setMousePosition({ x: clientX, y: clientY });
-    } else if (isResizing) {
-      const deltaX = clientX - mousePosition.x;
-      const deltaY = clientY - mousePosition.y;
-  
-      if (resizeDirection === 'right') {
-        setWindowSize((prevSize) => ({
-          ...prevSize,
-          width: Math.max(prevSize.width + (deltaX / window.innerWidth) * 100, 20),
-        }));
-      } else if (resizeDirection === 'bottom') {
-        setWindowSize((prevSize) => ({
-          ...prevSize,
-          height: Math.max(prevSize.height + (deltaY / window.innerHeight) * 100, 20),
-        }));
-      } else if (resizeDirection === 'bottom-right') {
-        setWindowSize((prevSize) => ({
-          width: Math.max(prevSize.width + (deltaX / window.innerWidth) * 100, 20),
-          height: Math.max(prevSize.height + (deltaY / window.innerHeight) * 100, 20),
-        }));
-      }
-  
-      setMousePosition({ x: clientX, y: clientY });
-    }
-  };
-  
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    setIsResizing(false);
+    setMousePosition({ x: e.clientX, y: e.clientY });
   };
 
   const handleResizeMouseDown = (e, direction) => {
-    e.preventDefault();
-    const clientX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
-    const clientY = e.type === 'mousedown' ? e.clientY : e.touches[0].clientY;
-  
+    e.stopPropagation();
     setIsResizing(true);
     setResizeDirection(direction);
-    setMousePosition({ x: clientX, y: clientY });
-  };
-  
-
-  const handleMaximize = () => {
-    setIsMaximized(!isMaximized);
+    setMousePosition({ x: e.clientX, y: e.clientY });
   };
 
   const handleMinimize = () => {
-    setIsMaximized(false);
-    togglePinItem(item);
+    // Logique pour minimiser la fenêtre
   };
 
-  useEffect(() => {
-    const handleTouchMove = (e) => handleMouseMove(e);
-    const handleTouchEnd = () => handleMouseUp();
-  
-    if (isDragging || isResizing) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-      window.addEventListener('touchmove', handleTouchMove, { passive: false });
-      window.addEventListener('touchend', handleTouchEnd);
+  const handleMaximize = () => {
+    if (isMaximized) {
+      setIsMaximized(false);
+      setWindowSize({ width: 800, height: 600 });
+      setWindowPosition({ x: 50, y: 50 });
+    } else {
+      setIsMaximized(true);
+      setWindowPosition({ x: 0, y: 0 });
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
     }
-  
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [isDragging, isResizing, mousePosition]);
-  
+  };
 
   return (
     <div
       ref={windowRef}
-      className="fixed z-50"
+      className="window fixed z-50"
       style={{
         left: isMaximized ? 0 : `${windowPosition.x}px`,
         top: isMaximized ? 0 : `${windowPosition.y}px`,
-        width: isMaximized ? '100vw' : `${windowSize.width}%`,
-        height: isMaximized ? '100vh' : `${windowSize.height}%`,
-        backgroundColor: 'white',
-        boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
+        width: isMaximized ? '100vw' : `${windowSize.width}px`,
+        height: isMaximized ? '100vh' : `${windowSize.height}px`,
         touchAction: 'none',
         userSelect: 'none',
         cursor: isResizing ? 'se-resize' : 'auto',
         overflow: 'hidden',
       }}
-      //onWheel={(e) => e.preventDefault()} // Empêche les défilements à la molette
-      //onTouchMove={(e) => e.preventDefault()} // Empêche les défilements tactiles
     >
+      {/* Barre de titre */}
       <div
-        className="flex justify-between items-center bg-gray-900 cursor-pointer"
+        className="window-header flex justify-between items-center cursor-move"
         onMouseDown={handleMouseDown}
         onTouchStart={handleMouseDown}
       >
-        <span className="truncate text-ellipsis px-1">{title}</span>
-        <div className="flex gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-gray-700 truncate">{title}</span>
+        </div>
+        
+        <div className="window-controls flex items-center">
           <button
             onClick={handleMinimize}
-            className="bg-transparent border-none cursor-pointer py-3 px-3 hover:bg-gray-800"
+            className="window-control minimize flex items-center justify-center w-12 h-8 hover:bg-gray-200 transition-colors duration-200"
             title="Minimiser"
           >
-            <FaWindowMinimize size={10} />
+            <FaWindowMinimize size={10} className="text-gray-600" />
           </button>
           <button
             onClick={handleMaximize}
-            className="bg-transparent border-none cursor-pointer py-3 px-3 hover:bg-gray-800"
+            className="window-control maximize flex items-center justify-center w-12 h-8 hover:bg-gray-200 transition-colors duration-200"
             title={isMaximized ? 'Restaurer' : 'Maximiser'}
           >
-            {isMaximized ? <FaWindowRestore size={10} /> : <FaWindowMaximize size={10} />}
+            {isMaximized ? (
+              <FaWindowRestore size={10} className="text-gray-600" />
+            ) : (
+              <FaWindowMaximize size={10} className="text-gray-600" />
+            )}
           </button>
           <button
             onClick={onClose}
-            className="bg-transparent border-none cursor-pointer py-3 px-3 hover:bg-red-500 transition"
+            className="window-control close flex items-center justify-center w-12 h-8 hover:bg-red-500 hover:text-white transition-colors duration-200"
             title="Fermer"
           >
-            <FaWindowClose size={10} />
+            <FaTimes size={10} />
           </button>
         </div>
       </div>
+
+      {/* Contenu de la fenêtre */}
       <div
         ref={contentRef}
+        className="flex-1 overflow-hidden bg-white"
         style={{
-          maxHeight: 'calc(100% - 40px)',
-          overflow: 'hidden', // Empêche tout défilement sur le contenu
+          height: 'calc(100% - 32px)',
         }}
-        //onWheel={(e) => e.preventDefault()} // Bloque les événements de défilement dans le contenu
-        //onTouchMove={(e) => e.preventDefault()} // Bloque les événements tactiles dans le contenu
-        className=' bg-gray-900'
       >
         {children}
       </div>
-      <div
-    className="absolute bottom-0 right-0 w-full h-4 bg-gray-900 cursor-se-resize"
-    onMouseDown={(e) => handleResizeMouseDown(e, 'bottom-right')}
-    onTouchStart={(e) => handleResizeMouseDown(e, 'bottom-right')}>
 
-  </div>
+      {/* Poignée de redimensionnement */}
+      {!isMaximized && (
+        <div
+          className="absolute bottom-0 right-0 w-6 h-6 cursor-se-resize flex items-end justify-end"
+          onMouseDown={(e) => handleResizeMouseDown(e, 'bottom-right')}
+          onTouchStart={(e) => handleResizeMouseDown(e, 'bottom-right')}
+        >
+          <div className="w-0 h-0 border-l-8 border-l-transparent border-t-8 border-t-gray-400 mb-1 mr-1"></div>
+        </div>
+      )}
     </div>
   );
-  
 };
 
 export default Window;

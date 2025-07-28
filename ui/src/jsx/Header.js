@@ -4,113 +4,164 @@ import Tabs from './Tabs';
 import { AppContext } from '../AppProvider';
 
 const Header = () => {
-const {
-      setSearchInput,
-      setSearchHistory,
-      handleSearchDropdownClick,
-      setInputPath,
-      inputPath,
-      handlePathDropdownClick,
-      searchInput,
-      handleBack, handleForward, 
-      contentLoading, currentPath, 
-      setCurrentPath, history, 
-      setSidebarOpen, isSidebarOpen,
-      setShowSearchDropdown,
-      showSearchDropdown,
-      searchHistory,
-      setShowPathDropdown,
-      showPathDropdown,
-      setSearchQuery,
+  const {
+    setSearchInput,
+    setSearchHistory,
+    handleSearchDropdownClick,
+    setInputPath,
+    inputPath,
+    handlePathDropdownClick,
+    searchInput,
+    handleBack, 
+    handleForward, 
+    contentLoading, 
+    currentPath, 
+    setCurrentPath, 
+    history, 
+    setSidebarOpen, 
+    isSidebarOpen,
+    setShowSearchDropdown,
+    showSearchDropdown,
+    searchHistory,
+    setShowPathDropdown,
+    showPathDropdown,
+    setSearchQuery,
   } = useContext(AppContext);
 
+  // Fonction pour gérer la soumission du chemin
+  const handlePathSubmit = () => {
+    if (inputPath && inputPath !== currentPath) {
+      setCurrentPath(inputPath);
+    }
+  };
 
   return (
-    <div className="w-full">
+    <div className="w-full bg-white border-b border-gray-200">
       <Tabs/>
-      <div className="header p-1 flex flex-col relative z-10 border-t-1 border-gray-700 w-full bg-neutral-900">
-        <div className="flex items-center justify-between mb-2 gap-4">
-          <div className="flex items-center gap-4">
-            <button onClick={() => setSidebarOpen(!isSidebarOpen)}>
-              {isSidebarOpen ? <FaChevronLeft /> : <FaChevronRight />}
+      <div className="p-4">
+        {/* Barre d'outils */}
+        <div className="flex items-center justify-between mb-4 gap-4">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setSidebarOpen(!isSidebarOpen)}
+              className="p-2 rounded-md hover:bg-gray-100 transition-colors duration-200"
+              title={isSidebarOpen ? "Masquer le volet de navigation" : "Afficher le volet de navigation"}
+            >
+              {isSidebarOpen ? <FaChevronLeft size={14} /> : <FaChevronRight size={14} />}
             </button>
-            <button onClick={handleBack}><FaArrowLeft /></button>
-            <button onClick={handleForward}><FaArrowRight /></button>
-            <button><FaArrowUp /></button>
-            <button onClick={() => setCurrentPath('')}><FaHome /></button>
-            <button onClick={() => setCurrentPath(currentPath)}><FaSyncAlt /></button>
+            <button 
+              onClick={handleBack}
+              className="p-2 rounded-md hover:bg-gray-100 transition-colors duration-200"
+              title="Précédent"
+            >
+              <FaArrowLeft size={14} />
+            </button>
+            <button 
+              onClick={handleForward}
+              className="p-2 rounded-md hover:bg-gray-100 transition-colors duration-200"
+              title="Suivant"
+            >
+              <FaArrowRight size={14} />
+            </button>
+            <button 
+              className="p-2 rounded-md hover:bg-gray-100 transition-colors duration-200"
+              title="Niveau supérieur"
+            >
+              <FaArrowUp size={14} />
+            </button>
+            <button 
+              onClick={() => setCurrentPath('')}
+              className="p-2 rounded-md hover:bg-gray-100 transition-colors duration-200"
+              title="Accueil"
+            >
+              <FaHome size={14} />
+            </button>
+            <button 
+              onClick={() => setCurrentPath(currentPath)}
+              className="p-2 rounded-md hover:bg-gray-100 transition-colors duration-200"
+              title="Actualiser"
+            >
+              <FaSyncAlt size={14} />
+            </button>
           </div>
 
-          <div className="relative flex items-center gap-2 w-full">
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => {
-                setSearchInput(e.target.value);
-                setSearchQuery(e.target.value);
-                setShowSearchDropdown(true);
-              }}
-              onFocus={() => setShowSearchDropdown(true)}
-              onBlur={
-                () => {
-                  if (searchInput) {
-                    setSearchHistory([...new Set([searchInput, ...searchHistory])]);
-                  }
-                  setShowSearchDropdown(false);
-                }                
-              }
-              placeholder="Rechercher..."
-              className="bg-transparent border-none outline-none p-1 w-full"
-            />
-            <FaSearch size={16} className="text-gray-400" />
-            {showSearchDropdown && (
-              <ul
-                style={{ top: '100%' }}
-                className="absolute left-0 right-0 bg-neutral-900 border border-gray-400 max-h-40 overflow-auto z-20"
-              >
+          {/* Barre de recherche */}
+          <div className="relative flex items-center gap-2 flex-1 max-w-md">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => {
+                  setSearchInput(e.target.value);
+                  setSearchQuery(e.target.value);
+                }}
+                onFocus={() => setShowSearchDropdown(true)}
+                onBlur={() => {
+                  setTimeout(() => {
+                    setShowSearchDropdown(false);
+                  }, 200);
+                }}
+                placeholder="Rechercher..."
+                className="w-full pl-8 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <FaSearch size={14} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </div>
+            
+            {showSearchDropdown && searchHistory.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-40 overflow-auto z-20">
                 {searchHistory.map((query, index) => (
-                  <li
+                  <div
                     key={index}
                     onMouseDown={() => handleSearchDropdownClick(query)}
-                    className="p-1 hover:bg-blue-500 cursor-pointer"
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
                   >
                     {query}
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
         </div>
 
-        <div className="relative flex items-center w-full gap-2">
-
+        {/* Barre d'adresse */}
+        <div className="flex items-center w-full gap-2">
           <div className="relative flex-grow">
             <input
               type="text"
               value={currentPath}
-              onChange={(e) =>setInputPath(e.target.value)}
+              onChange={(e) => setInputPath(e.target.value)}
               onFocus={() => setShowPathDropdown(true)}
               onBlur={
                 () => {
-                  setCurrentPath(inputPath);
-                  setShowPathDropdown(false);
+                  setTimeout(() => {
+                    setShowPathDropdown(false);
+                  }, 200);
                 }
               }
-              className="bg-transparent border-none outline-none p-1 w-full"
-              style={{ background: contentLoading ? 'linear-gradient(to right, #3490CEFF 50%, #3490CEFF 50%)' : 'none' }}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handlePathSubmit();
+                }
+              }}
+              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              style={{ 
+                background: contentLoading ? 'linear-gradient(90deg, #e5f3ff 50%, #f0f9ff 50%)' : '#f9fafb',
+                backgroundSize: '20px 100%',
+                animation: contentLoading ? 'loading 1s infinite' : 'none'
+              }}
             />
-            {showPathDropdown && (
-              <ul className="sticky left-0 right-0 bg-neutral-900 mt-1 max-h-40 overflow-auto z-100">
+            {showPathDropdown && history.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-40 overflow-auto z-20">
                 {history.map((path, index) => (
-                  <li
+                  <div
                     key={index}
                     onMouseDown={() => handlePathDropdownClick(path)}
-                    className="p-1 hover:bg-blue-400 cursor-pointer"
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
                   >
                     {path}
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
         </div>
@@ -120,3 +171,4 @@ const {
 };
 
 export default Header;
+

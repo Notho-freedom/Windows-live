@@ -9,48 +9,47 @@ const DefaultContent = () => {
   const [isFoldersOpen, setIsFoldersOpen] = useState(true);
   const [isDrivesOpen, setIsDrivesOpen] = useState(true);
 
-
   const toggleFolders = () => setIsFoldersOpen(!isFoldersOpen);
   const toggleDrives = () => setIsDrivesOpen(!isDrivesOpen);
 
   return (
-    <div className="bg-transparent content overflow-auto h-full w-full justify-between gap-4 p-2">
-      <div className="mb-4">
-        <h3 className="text-md font-semibold cursor-pointer flex flex-row items-center gap-2 p-1 mb-1 hover:bg-neutral-600" onClick={toggleFolders}>
-          {isFoldersOpen ? <FaChevronDown className='text-neutral-400' /> : <FaChevronRight className='text-neutral-400' />} Dossiers ({defaultFolders.length}) <span className="border-b border-neutral-800 flex-grow"></span>
+    <div className="bg-white content overflow-auto h-full w-full p-6">
+      <div className="mb-8">
+        <h3 className="text-lg font-semibold cursor-pointer flex flex-row items-center gap-2 p-2 mb-4 hover:bg-gray-100 rounded-md transition-colors" onClick={toggleFolders}>
+          {isFoldersOpen ? <FaChevronDown className='text-gray-500' /> : <FaChevronRight className='text-gray-500' />} 
+          Dossiers ({defaultFolders.length})
         </h3>
         {isFoldersOpen && (
-          <div className={`w-full grid ${isSidebarOpen? 'grid-cols-1':'grid-cols-2'} md:grid-cols-3 lg:grid-cols-4 gap-2 ml-3.5`}>
+          <div className={`w-full grid ${isSidebarOpen? 'grid-cols-1':'grid-cols-2'} md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 ml-4`}>
             {defaultFolders.map((folder, index) => (
               <div
                 key={index}
-                className='hover:bg-neutral-600 p-1 pl-3.5 py-1.5'
+                className='hover:bg-blue-50 p-3 rounded-lg transition-all duration-200 cursor-pointer border border-transparent hover:border-blue-200'
                 onDoubleClick={() => handleDoubleClick(folder)}
               >
-
-              <div className="folder flex items-center gap-2 cursor-pointer">
-                  <GetIcon item={folder} size={iconSize+0.5} />
-                  <span className="truncate">
-                      {folder.name}
+                <div className="flex flex-col items-center gap-2">
+                  <GetIcon item={folder} size={iconSize + 1} />
+                  <span className="text-sm text-gray-700 text-center truncate w-full" title={folder.name}>
+                    {folder.name}
                   </span>
                 </div>
-
-
               </div>
             ))}
           </div>
         )}
       </div>
+      
       <div>
-        <h3 className="text-md font-semibold cursor-pointer flex flex-row items-center gap-2 p-1 mb-1 hover:bg-neutral-600" onClick={toggleDrives}>
-          {isDrivesOpen ? <FaChevronDown className='text-neutral-400' /> : <FaChevronRight className='text-neutral-400' />} Périphériques et lecteurs ({drives.length})<span className="border-b border-neutral-800 flex-grow"></span>
+        <h3 className="text-lg font-semibold cursor-pointer flex flex-row items-center gap-2 p-2 mb-4 hover:bg-gray-100 rounded-md transition-colors" onClick={toggleDrives}>
+          {isDrivesOpen ? <FaChevronDown className='text-gray-500' /> : <FaChevronRight className='text-gray-500' />} 
+          Périphériques et lecteurs ({drives.length})
         </h3>
         {isDrivesOpen && (
-          <div className={`grid ${isSidebarOpen? 'grid-cols-1':'grid-cols-2'} md:grid-cols-3 lg:grid-cols-4 gap-2 ml-3.5`}>
+          <div className={`grid ${isSidebarOpen? 'grid-cols-1':'grid-cols-2'} md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 ml-4`}>
             {drives.map((drive, index) => (
               <div 
                 key={index} 
-                className='hover:bg-neutral-600 p-1 pl-3.5 py-1.5'
+                className='hover:bg-blue-50 p-3 rounded-lg transition-all duration-200 cursor-pointer border border-transparent hover:border-blue-200'
                 onDoubleClick={() => handleDoubleClick(drive)}
               >
                 <Drive

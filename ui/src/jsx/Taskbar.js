@@ -1,7 +1,8 @@
 import React, { useContext, useEffect } from 'react';
-import { FiVolume2, FiWifi, FiSearch, FiMessageSquare } from 'react-icons/fi';
+import { FiVolume2, FiWifi, FiSearch, FiMessageSquare, FiBell } from 'react-icons/fi';
 import { AppContext } from '../AppProvider';
 import { FaChevronUp, FaWindows } from 'react-icons/fa';
+import { GetIcon } from './IconManager';
 
 const Taskbar = () => {
   const {
@@ -11,6 +12,7 @@ const Taskbar = () => {
     currentDate,
     pinnedApps,
     updateTime,
+    openWindows,
   } = useContext(AppContext);
 
   useEffect(() => {
@@ -20,56 +22,77 @@ const Taskbar = () => {
   }, [updateTime]);
 
   return (
-    <div className="relative bottom-0 left-0 w-full h-8 bg-gray-900 text-white flex items-center justify-between shadow-lg border-gray-700">
-      {/* Menu démarrer et applications épinglées */}
-      <div className="flex items-center justify-between lg:w-1/4 xl:w-1/4">
+    <div className="taskbar">
+      {/* Section gauche - Menu démarrer et applications épinglées */}
+      <div className="flex items-center gap-2">
         {/* Bouton Windows */}
         <button
           aria-label="Menu Démarrer"
-          className="flex items-center py-2 px-2 hover:bg-gray-800 hover:text-blue-500 transition"
+          className={`flex items-center justify-center w-10 h-10 rounded-md transition-all duration-200 ${
+            isStartMenuVisible 
+              ? 'bg-white/20 text-white' 
+              : 'hover:bg-white/10 text-white/90 hover:text-white'
+          }`}
           onClick={() => setIsStartMenuVisible(!isStartMenuVisible)}
         >
-          <FaWindows size={18} />
+          <FaWindows size={16} />
         </button>
 
         {/* Barre de recherche */}
-        <div className="items-center bg-gray-800 gap-1 py-1 px-2 hover:bg-gray-700 transition w-full h-8 flex">
-          <FiSearch size={16} className="text-gray-400" />
+        <div className="search-bar flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 hover:bg-white/10">
+          <FiSearch size={14} className="text-white/70" />
           <input
             type="text"
             placeholder="Rechercher"
-            className="bg-transparent border-none outline-none text-sm text-gray-300 placeholder-gray-500 h-full w-full"
+            className="bg-transparent border-none outline-none text-sm text-white placeholder-white/50 w-32"
           />
         </div>
 
         {/* Applications épinglées */}
-        <div className="flex">
-          {pinnedApps.map((app) => (
+        <div className="flex items-center gap-1">
+          {pinnedApps.slice(0, 6).map((app) => (
             <div
               key={app.id}
-              className="w-8 h-8 flex items-center ml-1 justify-center cursor-pointer hover:bg-gray-700 transition border-b"
+              className="w-10 h-10 flex items-center justify-center cursor-pointer rounded-md transition-all duration-200 hover:bg-white/10 group"
               title={app.name}
             >
-              {app.icon}
+              <div className="w-6 h-6 flex items-center justify-center text-white/90 group-hover:text-white">
+                {app.icon}
+              </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Notifications et barre d'état système */}
-      <div className="flex items-center gap-2 md:gap-3 lg:gap-4">
+      {/* Section centrale - Fenêtres ouvertes */}
+      <div className="flex items-center gap-1">
+        {openWindows.map((window) => (
+          <div
+            key={window.id}
+            className="w-10 h-10 flex items-center justify-center cursor-pointer rounded-md transition-all duration-200 hover:bg-white/10 group"
+            title={window.title}
+          >
+            <div className="w-6 h-6 flex items-center justify-center text-white/90 group-hover:text-white">
+              <GetIcon item={window.item} size={4} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Section droite - Notifications et barre d'état système */}
+      <div className="flex items-center gap-1">
         {/* Notifications */}
         <button
           aria-label="Notifications"
-          className="flex items-center justify-center w-6 h-6 cursor-pointer hover:text-gray-400"
+          className="w-10 h-10 flex items-center justify-center cursor-pointer rounded-md transition-all duration-200 hover:bg-white/10 text-white/90 hover:text-white"
         >
-          <FaChevronUp size={14} />
+          <FiBell size={14} />
         </button>
 
         {/* Réseau */}
         <button
           aria-label="Réseau"
-          className="flex items-center justify-center w-6 h-6 cursor-pointer hover:text-gray-400"
+          className="w-10 h-10 flex items-center justify-center cursor-pointer rounded-md transition-all duration-200 hover:bg-white/10 text-white/90 hover:text-white"
         >
           <FiWifi size={14} />
         </button>
@@ -77,27 +100,30 @@ const Taskbar = () => {
         {/* Volume */}
         <button
           aria-label="Volume"
-          className="flex items-center justify-center w-6 h-6 cursor-pointer hover:text-gray-400"
+          className="w-10 h-10 flex items-center justify-center cursor-pointer rounded-md transition-all duration-200 hover:bg-white/10 text-white/90 hover:text-white"
         >
           <FiVolume2 size={14} />
         </button>
 
+        {/* Séparateur */}
+        <div className="w-px h-6 bg-white/20 mx-2"></div>
+
         {/* Horloge */}
-        <div className="flex flex-col text-right">
-          <span className="text-xs">FRA</span>
-        </div>
-        <div className="flex flex-col text-right">
-          <span className="text-xs" title={currentDate}>
+        <div className="flex flex-col items-end px-2">
+          <span className="text-xs text-white/90 font-medium">
             {currentTime}
+          </span>
+          <span className="text-xs text-white/70">
+            {currentDate}
           </span>
         </div>
 
-        {/* Messages */}
+        {/* Bouton de notification système */}
         <button
-          aria-label="Messages"
-          className="flex items-center justify-center w-6 h-6 cursor-pointer hover:text-gray-400 mr-4"
+          aria-label="Centre de notifications"
+          className="w-10 h-10 flex items-center justify-center cursor-pointer rounded-md transition-all duration-200 hover:bg-white/10 text-white/90 hover:text-white"
         >
-          <FiMessageSquare size={14} />
+          <FaChevronUp size={12} />
         </button>
       </div>
     </div>

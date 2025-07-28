@@ -98,60 +98,78 @@ const Desktop = () => {
       )}
   
       {/* Desktop Icons */}
-      <div className="absolute flex overflow-hidden left-1 top-1" style={{ justifyContent: "start" }}>
-        {columns.map((columnItems, colIndex) => (
-          <div key={colIndex} className="flex flex-col">
-            {columnItems.map((item, index) => (
-              <div
-                key={index}
-                id={item.last_modified}
-                className={`
-                  flex flex-col items-center justify-center text-center cursor-pointer m-1 
-                  ${style} hover:bg-blue-300 hover:bg-opacity-40 hover:border hover:border-zinc-400 
-                  ${selectedItems.includes(item) ? "bg-blue-300 bg-opacity-40 border border-zinc-400" : ""} 
-                  ${focusedItem === item ? "border border-blue-500" : ""}
-                `}
-                style={{
-                  width: `${gridConfig.itemWidth}px`,
-                  height: `${gridConfig.itemHeight}px`,
-                  opacity: `${item.is_hidden ? "0.5" : "1"}`,
-                }}
-                title={item.name}
-                onDoubleClick={() => handleDoubleClick(item)}
-                onContextMenu={(event) => handleRightClick(event, item)}
-              >
-                <GetIcon item={item} size={iconSize-1} />
-                {editingItem === item ? (
-                  <input
-                    type="text"
-                    value={newName}
-                    ref={inputRef}
-                    onChange={(event) => setNewName(event.target.value)}
-                    onBlur={() => {
-                      if (newName !== editingItem.name) {
-                        const updatedItems = allItems.map((item) =>
-                          item === editingItem ? { ...item, name: newName } : item
-                        );
-                        setSortedItems(updatedItems);
-                      }
-                      setEditingItem(null);
-                    }}
-                    autoFocus
-                    className="w-full mt-1 text-xs text-center bg-white border border-gray-400 outline-none will-change-contents"
-                  />
-                ) : (
-                  <span
-                    className="text-white truncate"
-                    style={{ maxWidth: gridConfig.itemWidth }}
-                    onClick={() => handleEditName(item)}
-                  >
-                    {item.name}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        ))}
+      <div className="absolute inset-0 p-6">
+        <div className="grid grid-cols-1 gap-4 h-full">
+          {columns.map((columnItems, colIndex) => (
+            <div key={colIndex} className="flex flex-col gap-2">
+              {columnItems.map((item, index) => (
+                <div
+                  key={index}
+                  id={item.last_modified}
+                  className={`
+                    flex flex-col items-center justify-center text-center cursor-pointer p-3 rounded-lg
+                    transition-all duration-200 hover:bg-white/10 hover:backdrop-blur-sm
+                    ${selectedItems.includes(item) ? "bg-blue-500/30 border border-blue-400/50 backdrop-blur-sm" : ""} 
+                    ${focusedItem === item ? "ring-2 ring-blue-400/50" : ""}
+                    ${item.is_hidden ? "opacity-50" : "opacity-100"}
+                  `}
+                  style={{
+                    minHeight: `${gridConfig.itemHeight}px`,
+                    minWidth: `${gridConfig.itemWidth}px`,
+                  }}
+                  title={item.name}
+                  onDoubleClick={() => handleDoubleClick(item)}
+                  onContextMenu={(event) => handleRightClick(event, item)}
+                >
+                  <div className="mb-2">
+                    <GetIcon item={item} size={iconSize} />
+                  </div>
+                  
+                  {editingItem === item ? (
+                    <input
+                      type="text"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      onBlur={() => {
+                        if (newName !== editingItem.name) {
+                          const updatedItems = allItems.map((item) =>
+                            item === editingItem ? { ...item, name: newName } : item
+                          );
+                          setSortedItems(updatedItems);
+                        }
+                        setEditingItem(null);
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          if (newName !== editingItem.name) {
+                            const updatedItems = allItems.map((item) =>
+                              item === editingItem ? { ...item, name: newName } : item
+                            );
+                            setSortedItems(updatedItems);
+                          }
+                          setEditingItem(null);
+                        }
+                      }}
+                      autoFocus
+                      className="w-full text-xs text-center bg-white/90 text-gray-800 border border-gray-300 rounded px-2 py-1 outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                  ) : (
+                    <span
+                      className="text-white text-xs font-medium truncate max-w-full text-shadow-sm"
+                      style={{ 
+                        maxWidth: gridConfig.itemWidth - 16,
+                        textShadow: '0 1px 2px rgba(0, 0, 0, 0.8)'
+                      }}
+                      onClick={() => handleEditName(item)}
+                    >
+                      {item.name}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
       </div>
   
       {/* Open Windows */}

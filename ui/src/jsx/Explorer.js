@@ -14,27 +14,29 @@ const Explorer = () => {
 
 
   return (
-    <div className="flex flex-col h-screen bg-neutral-900">
+    <div className="flex flex-col h-full bg-white">
       <Header/>
-  
+
       <div className="flex flex-grow relative overflow-hidden">
+        {/* Barre latérale */}
         <div
-          className={`transition-all flex-shrink-0 bg-neutral-900 h-full max-h-screen ${
-            isSidebarOpen ? 'w-[45%] md:w-[23%] lg:w-[20%]' : 'w-0'
+          className={`transition-all duration-300 flex-shrink-0 bg-gray-50 border-r border-gray-200 h-full ${
+            isSidebarOpen ? 'w-64' : 'w-0'
           } overflow-y-auto z-20`}
         >
           <Sidebar/>
         </div>
-  
+
+        {/* Contenu principal */}
         <div
-          className={`flex-grow transition-all ${
-            isSidebarOpen ? 'w-[55%] md:w-2/3 lg:w-[85%]' : 'w-full'
-          } bg-neutral-800 z-10 overflow-y-auto`}
+          className={`flex-grow transition-all duration-300 ${
+            isSidebarOpen ? 'ml-0' : 'ml-0'
+          } bg-white overflow-y-auto`}
         >
           {currentPath === '' ? (
-            <DefaultContent />
+            <DefaultContent/>
           ) : (
-            <Content />
+            <Content/>
           )}
         </div>
       </div>
